@@ -54,14 +54,14 @@ typedef struct liststrng
  * @environ: custom modified copy of environ from LL env
  * @history: the history node
  * @alias: the alias node
- * @env_changed: on if environ was changed
+ * @changed_env: on if environ was changed
  * @status: the return status of the last exec'd command
  * @cmd_buf: address of pointer to cmd_buf, on if chaining
  * @cmd_buf_type: CMD_type ||, &&, ;
  * @readfd: the fd from which to read line input
  * @histcount: the history line number count
  */
-typedef struct 
+typedef struct
 {
 	char *arg;
 	char **argv;
@@ -75,9 +75,9 @@ typedef struct
 	list_str *history;
 	list_str *alias;
 	char **environ;
-	int env_changed;
+	int changed_env;
 	int status;
-	char **cmd_buf; 
+	char **cmd_buf;
 	int cmd_buf_type;
 	int readfd;
 	int histcount;
@@ -92,40 +92,22 @@ typedef struct
  * @type: the builtin command flag
  * @func: the function
  */
-typedef struct 
+typedef struct
 {
 	char *type;
 	int (*func)(info_all *);
 } main_builtin_table;
 
-int _atoi(char *s);
-void _puts(char *);
-int _putchar(char);
-int _putfd(char c, int fd);
-int _putsfd(char *str, int fd);
-int _strlen(char *);
-int _strcmp(char *, char *);
+char **get_environment(info_all *);
+char **change_list_to_strings(list_str *);
+int remove_env(info_all *, char *);
+int init_env(info_all *, char *, char *);
 char *ch_starts_with(const char *, const char *);
-char *_strcat(char *, char *);
+int del_index_node(list_str **, unsigned int);
 char *_strcpy(char *, char *);
-char *_strdup(const char *);
-void _eputs(char *);
-int _eputchar(char);
-char *_strncpy(char *, char *, int);
-char *_strncat(char *, char *, int);
-char *_strchr(char *, char);
-char *getting_env(info_all *, const char *);
-int current_env(info_all *);
-int _settingenv(info_all *, char *, char *);
-int init_env(info_all *);
-int remov_env(info_all *);
-int _unsettingEnv(info_all *, char *);
-int insert_env_list(info_all *);
-list_str *add_node_end(list_str **, const char *, int);
-size_t listStr_print(const list_str *);
-char **get_environ(info_all *);
+char *_strcat(char *, char *);
+int _strlen(char *);
+list_str *node_end_add(list_str **, const char *, int);
+int _atoi(char *s);
 
-
-
-#endif
-
+#endif /* MAIN_H */

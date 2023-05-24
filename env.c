@@ -1,100 +1,87 @@
 #include "main.h"
 
 /**
- * current_env - prints the current environment
- * @info: Structure containing arguments.
+ * get_environment - returns the string array copy of our environ
+ * @info: Structure containing  arguments. 
  * Return: Always 0
  */
-int current_env(info_all *info)
+char **get_environment(info_all *info)
 {
-	listStr_print(info->env);
-	return (0);
-}
-
-/**
- * getting_env - gets the value of an environ variable
- * @info: Structure containing  arguments. 
- * @name: env variabe name
- *
- * Return: the value
- */
-char *getting_env(info_all *info, const char *name)
-{
-	list_t *node;
-	char *ab;
-
-	node = info->env;
-	while (node)
+	if (!info->environ || info->changed_env)
 	{
-		ab = ch_starts_with(node->str, name);
-		if (ab && *ab)
-			return (ab);
-		node = node->next;
+		info->environ = change_list_to_strings(info->env);
+		info->changed_env = 0;
 	}
-	return (NULL);
+
+	return (info->environ);
 }
+
 /**
- * init_env - Initialize a new environment variable
- * @info: Structure containing potential arguments. Used to maintain
- *        constant function prototype.
- *  Return: Always 0
+ * remove_env - Remove an environment variable
+ * @info: Structure containing  arguments.
+ *  Return: 1 on delete, 0 otherwise
+ * @var: the string env var property
  */
-int init_env(info_all *info)
+int remove_env(info_all *info, char *var)
 {
-    int res;
-    
-    res = 1;
-	if (info->argc == 3)
+	list_t *node = info->env;
+	size_t i = 0;
+	char *p;
+
+	if (!node || !var)
+		return (0);
+
+	for (node = info->env, i = 0; node != NULL; node = node->next, i++)
     {
-        if (_settingenv(info, info->argv[1], info->argv[2]) == 0)
+        p = ch_starts_with(node->str, var);
+        if (p && *p == '=')
         {
-            res = 0;
+            info->changed_env = del_index_node(&(info->env), i);
+            i = 0;
+            node = info->env;
         }
     }
-    else
-    {
-        _eputs("Incorrect number of arguments\n");
-    }
-    return res;
+	return (info->changed_env);
 }
-/**
- * remov_env - Remove an environment variable
- * @info: Structure containing  arguments.
- * Return: Always 0
- */
-int remov_env(info_all *info)
-{
-	int ab = 1;
 
-	if (info->argc == 1)
-	{
-		_eputs("Few arguments.\n");
+/**
+ * init_env - Initialize a new environment variable,
+ *             or modify an existing one
+ * @info: Structure containing  arguments.
+ * @var: the string env var property
+ * @value: the string env var value
+ *  Return: Always 0
+ */
+int init_env(info_all *info, char *var, char *value)
+{
+	char *buf = NULL;
+	list_t *node;
+	char *p;
+
+	if (!var || !value)
+		return (0);
+
+	buf = malloc(_strlen(var) + _strlen(value) + 2);
+	if (!buf)
 		return (1);
+	_strcpy(buf, var);
+	_strcat(buf, "=");
+	_strcat(buf, value);
+	node = info->env;
+	while (node != NULL)
+	{
+		p = ch_starts_with(node->str, var);
+		if (p && *p == '=')
+		{
+			free(node->str);
+			node->str = buf;
+			info->changed_env = 1;
+			return (0);
+		}
+		node = node->next;
 	}
-    while (ab < info->argc)
-    {
-        _unsetenv(info, info->argv[ab]);
-        ab++;
-    }
-		
-	return (0);
-}
-
-/**
- * insert_env_list - populates env linked list
- * @info: Structure containing  arguments.
- * Return: Always 0
- */
-int insert_env_list(info_all *info)
-{
-	list_t *node = NULL;
-	size_t ab;
-
-	while (environ[ab] != NULL)
-    {
-        add_node_end(&node, environ[ab], 0);
-        ab++;
-    }
-	info->env = node;
+	node_end_add(&(info->env), buf, 0);
+	free(buf);
+	info->changed_env = 1;
 	return (0);
 }
